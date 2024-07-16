@@ -1,9 +1,9 @@
 const express = require("express");
-const controllers = require("../controllers/");
-const inboxRoutes = express.Router();
+const { index, searchUser } = require("../controllers/inboxController");
+const { authCheck } = require("../middleware/common/checkAuth");
+const router = express.Router();
 
-inboxRoutes.get("/", controllers.inboxController.index);
-// router.post("/login", con);
-// router.post("/logout", logoutUser);
+router.get("/", authCheck, index);
+router.post("/search", authCheck, searchUser);
 
-module.exports = inboxRoutes;
+module.exports = router;

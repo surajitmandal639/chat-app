@@ -14,9 +14,12 @@ const config = require("./config/index.js");
 const { notFound, errorHandler } = require("./middleware/common/error.js");
 const userRoutes = require("./routes/userRoutes.js");
 const loginRoutes = require("./routes/loginRoutes.js");
+const inboxRoutes = require("./routes/inboxRoutes.js");
 
 // connect with .env file
 configDotenv();
+
+app.use(cookieParser());
 
 // connect with mongodb
 try {
@@ -32,7 +35,7 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "njk");
-app.use(cookieParser(process.env.COOKIE_SECRET));
+
 
 // Configure Nunjucks
 nunjucks.configure("views", {
@@ -44,7 +47,7 @@ nunjucks.configure("views", {
 app.use("/", loginRoutes);
 app.use("/users", userRoutes);
 // app.use("/api/users", userRoutes);
-// app.use("/inbox", inboxRoutes);
+app.use("/inbox", inboxRoutes);
 
 // app.get("/", function (req, res) {
 //   res.render("index.html", { title: "Home Page", message: "This is home/ index page" });

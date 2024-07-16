@@ -1,5 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
+const fs = require("node:fs");
+const path = require("node:path");
 
 // Render users page or return JSON based on URL Get all user
 exports.index = async (req, res, next) => {
@@ -7,11 +9,16 @@ exports.index = async (req, res, next) => {
     const users = await User.find();
     // Check if the request URL contains '/api'
     const isAPIRequest = req.originalUrl.includes("/api");
+
     if (isAPIRequest) {
-      res.json(users); // Return JSON if URL contains '/api'
+      res.json({
+        authUser: req.authUser || null,
+        users: users, // Return JSON if URL contains '/api'
+      });
     } else {
       res.render("users", {
         title: "Manage Users",
+        authUser: req.authUser || null,
         users: users, // Pass users array to the template
         errors: [],
         formData: {}, // Initialize formData object as empty
@@ -26,7 +33,7 @@ exports.index = async (req, res, next) => {
 exports.create = async (req, res) => {
   try {
     const { name, email, password, mobile } = req.body;
-    const avatar = req.file ? req.file.filename : null; 
+    const avatar = req.file ? req.file.filename : null;
     const hashPassword = await bcrypt.hash(password, 10);
 
     // Create new user instance
@@ -35,15 +42,16 @@ exports.create = async (req, res) => {
       email,
       password: hashPassword,
       mobile,
+      role: "user",
       avatar,
     });
 
     // Save user to database
     const savedUser = await newUser.save();
 
-    res.status(201).json({
+    res.status(200).json({
       message: "User saved successfully",
-    }); 
+    });
   } catch (err) {
     console.error("Error creating user:", err);
     res.status(500).json({ error: "Server Error" });
@@ -73,7 +81,9 @@ exports.update = async (req, res, next) => {
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.json(updatedUser);
+    res.status(200).json({
+      message: "User updated successfully",
+    });
   } catch (error) {
     next(error);
   }
@@ -82,10 +92,21 @@ exports.update = async (req, res, next) => {
 // DELETE delete a user by ID
 exports.destroy = async (req, res, next) => {
   const { id } = req.params;
+
   try {
     const deletedUser = await User.findByIdAndDelete(id);
     if (!deletedUser) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    if (deletedUser.avatar) {
+      const filename = deletedUser.avatar;
+      const filePath = path.join(__dirname, "../public/uploads/avatars", filename);
+      fs.unlink(filePath, (err) => {
+        if (err) {
+          console.log("Error deleting file:", err);
+        }
+      });
     }
     res.json({ message: "User deleted successfully" });
   } catch (error) {

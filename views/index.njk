@@ -1,19 +1,29 @@
-{% extends "./layout.njk" %}
-
-{% block content %}
+{% extends "./layout.njk" %} {% block content %}
 <div id="login-container">
   <div id="left-column"></div>
   <div id="branding">
-    <img src="./images/logo.png" alt="Logo">
+    <img src="./images/logo.png" alt="Logo" />
     <h1>Login - Chat Application</h1>
   </div>
   <div id="login-form">
-    <form method="post" action="/">
-      <input type="text" name="username" placeholder="Enter mobile or email" value="">
-      <p class="error show">Error message here</p>
-      <input type="password" name="password" placeholder="Enter password">
-      <input type="submit" value="Login">
+    <form id="myForm" action="/" method="POST" enctype="multipart/form-data">
+      <input type="text" placeholder="Enter username" name="username" />
+      <p></p>
+
+      <input type="password" placeholder="Enter password" name="password" />
+      <p></p>
+
+      <input type="button" value="Submit" id="submit-btn" />
     </form>
   </div>
 </div>
+
+<script>
+  $(document).ready(function () {
+    $("#submit-btn").on("click", function (event) {
+      event.preventDefault();
+      submitForm("myForm");
+    });
+  });
+</script>
 {% endblock %}

@@ -1,4 +1,3 @@
-const multer = require("multer");
 const { body, validationResult } = require("express-validator");
 const fs = require("fs");
 const path = require("path");
@@ -10,10 +9,9 @@ const userValidator = [
 
   // Validate email and mobile
   body("email")
-    // .notEmpty()
-    // .withMessage("Email or mobile is required")
-    // .isEmail()
-    // .withMessage("Email is invalid")
+    .optional({ checkFalsy: true })
+    .isEmail()
+    .withMessage("Email is invalid")
     .custom(async (value, { req }) => {
       // console.log("Checking email:", value);
       const existingUser = await User.findOne({ email: value });
@@ -24,6 +22,9 @@ const userValidator = [
     }),
 
   body("mobile")
+    .optional({ checkFalsy: true })
+    .matches(/^[6-9]\d{9}$/)
+    .withMessage("Phone number must be a valid Indian number")
     // .notEmpty()
     // .withMessage("Email or mobile is required")
     .custom(async (value, { req }) => {
@@ -35,7 +36,7 @@ const userValidator = [
       }
     }),
 
-  body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters long"),
+  body("password").exists({ checkFalsy: true }).withMessage("Password is required").isLength({ min: 8 }).withMessage("Password must be at least 8 characters long"),
 
   body("confirmPassword").custom((value, { req }) => {
     if (value !== req.body.password) {

@@ -1,96 +1,71 @@
-// const User = require("../models/User");
-// const bcrypt = require("bcrypt");
-// const jwt = require("jsonwebtoken");
-// const generateToken = require("../utils/generateToken");
-
-// // Register user
-// exports.registerUser = async (req, res) => {
-//   const { name, email, password } = req.body;
-//   try {
-//     // Check if user already exists
-//     const userExists = await User.findOne({ email });
-//     if (userExists) {
-//       return res.status(400).json({ message: "User already exists" });
-//     }
-
-//     // Hash the password
-//     const saltRounds = parseInt(process.env.SALT_ROUND) || 10;
-//     const salt = await bcrypt.genSalt(saltRounds);
-//     const hashedPassword = await bcrypt.hash(password, salt);
-
-//     // Create new user
-//     const user = await User.create({
-//       name,
-//       email,
-//       password: hashedPassword,
-//     });
-
-//     // Generate token
-//     const token = generateToken(user._id);
-
-//     // Respond with user data and token
-//     res.status(201).json({
-//       _id: user._id,
-//       name: user.name,
-//       email: user.email,
-//       token,
-//     });
-//   } catch (error) {
-//     console.error("Error in user registration:", error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
+const User = require("../models/User");
+const generateToken = require("../utils/generateToken");
 
 // Render login page
-const index = (req, res, next) => {
-  res.locals.html = true;
+const index = (req, res) => {
+  console.log(req.authUser);
+  if (req.authUser) {
+    // Redirect to previous page or any specific page if user is authenticated
+    // Use the `Referer` header to redirect to the previous page
+    const referer = req.headers.referer || "/inbox"; // Default to '/' if no referer is available
+    return res.redirect(referer);
+  }
   res.render("index", {
     title: "Login Page",
   });
 };
 
-// // Login user
-// const loginUser = async (req, res) => {
-//   const { email, password } = req.body;
+// Login user
+const loginUser = async (req, res) => {
+  try {
+    // User is already found and stored in req.user by loginValidator
+    const user = req.user;
 
-//   try {
-//     // Find user by email
-//     const user = await User.findOne({ email });
+    const modifyUser = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
 
-//     // Check if user exists and password is correct
-//     if (!user || !(await bcrypt.compare(password, user.password))) {
-//       return res.status(401).json({ message: "Invalid credentials" });
-//     }
+    // Generate JWT token
+    const token = generateToken(modifyUser);
 
-//     // Generate JWT token
-//     const token = generateToken(user._id);
+    // Set cookie
+    res.cookie("access_token", "Bearer " + token, {
+      expires: new Date(Date.now() + 1 * 3600000), // Cookie expires in 1 hour
+      httpOnly: true, // Helps to prevent XSS attacks
+      secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
+    });
 
-//     // Set the token in a cookie or return it in the response
-//     res.json({
-//       _id: user._id,
-//       name: user.name,
-//       email: user.email,
-//       token,
-//     });
-//   } catch (error) {
-//     console.error("Login error:", error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-// // Logout user
-// const logoutUser = (req, res) => {
-//   // Clear the 'token' cookie
-//   res.clearCookie("token");
-
-//   // Respond with a message indicating successful logout
-//   res.json({ message: "Logged out successfully" });
-// };
-
-const loginController = {
-  index,
-  //   loginUser,
-  //   logoutUser,
+    // Send a JSON response with success message and user data
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    res.json({
+      message: "Login successful",
+      redirectUrl: `${baseUrl}/inbox`,
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({
+      error: "Server error",
+    });
+  }
 };
 
-module.exports = loginController;
+// Logout user
+const logoutUser = (req, res) => {
+  console.log("Before clearing cookie:", req.cookies.access_token); // Log before clearing
+  res.clearCookie("access_token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
+    sameSite: "Strict", // Optional: helps prevent CSRF attacks
+  });
+  console.log("After clearing cookie:", req.cookies.access_token);
+  res.json({ message: "Logged out successfully" });
+};
+
+module.exports = {
+  index,
+  loginUser,
+  logoutUser,
+};
