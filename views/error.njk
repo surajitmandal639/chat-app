@@ -4,10 +4,108 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 5rem;
+        }
+        .error-container {
+            margin: 0 auto;
+            max-width: 600px;
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 1s forwards;
+        }
+        .error-card {
+            padding: 2rem;
+            animation: scaleUp 0.5s ease-in-out;
+        }
+        .error-message {
+            font-size: 1.25rem;
+            color: #dc3545;
+        }
+        .error-status {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #343a40;
+            animation: pulse 1.5s infinite;
+        }
+        .error-stack {
+            font-size: 0.875rem;
+            color: #6c757d;
+            white-space: pre-wrap;
+            text-align: left;
+            margin-top: 1rem;
+        }
+        .error-image {
+            max-width: 150px;
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleUp {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                color: #343a40;
+            }
+            50% {
+                transform: scale(1.1);
+                color: #dc3545;
+            }
+            100% {
+                transform: scale(1);
+                color: #343a40;
+            }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-30px);
+            }
+            60% {
+                transform: translateY(-15px);
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>{{error.message}}</h1>
-    <h1>{{error.status}}</h1>
-    <h1>{{error.stack}}</h1>
+    <div class="container error-container">
+        <div class="card error-card">
+            <div class="card-body">
+                <img src="https://media.giphy.com/media/3o6ozh6GzDq7mGbWyQ/giphy.gif" alt="Error" class="error-image">
+                <h1 class="error-status">{{error.status}}</h1>
+                <p class="error-message">{{error.message}}</p>
+                <pre class="error-stack">{{error.stack}}</pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -13,12 +13,14 @@ const loginValidator = [
     .withMessage("Invalid email format")
     .custom(async (value, { req }) => {
       // console.log("Checking username:", value);
-      const user = await User.findOne({ email: value }); // Assuming username is the email
+      const user = await User.findOne({ $or: [{ email: value }, { mobile: value }] });
       if (!user) {
         // console.log("Username not found");
         throw new Error("Invalid credentials");
       }
-      req.user = user; // Attach user to req object
+      req.loggingUser = user;
+      // req.loggingUser = user.toObject();
+      // req.loggingUser.username = value;
     }),
 
   body("password")
@@ -27,10 +29,10 @@ const loginValidator = [
     .isLength({ min: 8 })
     .withMessage("Password must be at least 8 characters long")
     .custom(async (value, { req }) => {
-      if (!req.user) {
+      if (!req.loggingUser) {
         throw new Error("Invalid credentials");
       }
-      const match = await bcrypt.compare(value, req.user.password);
+      const match = await bcrypt.compare(value, req.loggingUser.password);
       if (!match) {
         throw new Error("Invalid credentials");
       }

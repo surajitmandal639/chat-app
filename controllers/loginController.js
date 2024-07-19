@@ -3,8 +3,7 @@ const generateToken = require("../utils/generateToken");
 
 // Render login page
 const index = (req, res) => {
-  console.log(req.authUser);
-  if (req.authUser) {
+  if (req.user) {
     // Redirect to previous page or any specific page if user is authenticated
     // Use the `Referer` header to redirect to the previous page
     const referer = req.headers.referer || "/inbox"; // Default to '/' if no referer is available
@@ -19,17 +18,10 @@ const index = (req, res) => {
 const loginUser = async (req, res) => {
   try {
     // User is already found and stored in req.user by loginValidator
-    const user = req.user;
-
-    const modifyUser = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    };
+    const user = req.loggingUser;
 
     // Generate JWT token
-    const token = generateToken(modifyUser);
+    const token = generateToken(user._id);
 
     // Set cookie
     res.cookie("access_token", "Bearer " + token, {
@@ -43,6 +35,7 @@ const loginUser = async (req, res) => {
     res.json({
       message: "Login successful",
       redirectUrl: `${baseUrl}/inbox`,
+      token,
     });
   } catch (error) {
     console.error("Login error:", error);

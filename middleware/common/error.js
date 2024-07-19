@@ -5,16 +5,20 @@ function notFound(req, res, next) {
   next(createHttpError(404, "Your requested page was not found."));
 }
 
-// Default Error Handling Middleware
+// default error handler
 function errorHandler(err, req, res, next) {
   res.locals.error = process.env.NODE_ENV === "development" ? err : { message: err.message };
 
-  if (res.locals.html) {
-    res.render("error", {
-      title: "Error"
-    });
-  } else {
+  res.status(err.status || 500);
+
+  if (req.originalUrl.startsWith("/api")) {
+    // json response
     res.json(res.locals.error);
+  } else {
+    // html response
+    res.render("error", {
+      title: "Error page",
+    });
   }
 }
 

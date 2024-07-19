@@ -14,12 +14,13 @@
     </div>
   </div>
 </div>
+
 <script>
   const modal = document.querySelector("#add-conversation-modal");
   // typing detector
   let typingTimer;
   const doneTypingInterval = 500;
-  const input = document.querySelector("input#user");
+  const input = document.querySelector("#user");
   const conversation_list = document.querySelector("#conversation-list");
   let users_placeholder = document.querySelector(".search_users");
 
@@ -76,6 +77,7 @@
       errorplaceholder.textContent = result.errors.common.msg;
       errorplaceholder.style.display = "block";
     } else {
+      console.log(result);
       if (result.length > 0) {
         let generatedHtml = "<ul>";
         result.forEach((user) => {

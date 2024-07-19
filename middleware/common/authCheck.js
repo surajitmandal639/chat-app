@@ -1,11 +1,9 @@
 const jwt = require("jsonwebtoken");
 const User = require("../../models/User");
-const { check } = require("express-validator");
+const createHttpError = require("http-errors");
 
 const authCheck = async (req, res, next) => {
-  // Extract token from cookie
   const token = req.cookies.access_token?.split(" ")[1];
-  //   console.log(token);
 
   if (!token) {
     return res.redirect("/");
@@ -13,14 +11,14 @@ const authCheck = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const authUser = await User.findById(decoded._id).select("-password");
-    if (!authUser) {
+    const user = await User.findById(decoded._id).select("-password");
+
+    if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    authUser.username = authUser.email || authUser.phone;
-
-    req.authUser = authUser;
+    req.user = user.toObject();
+    req.user.username = user.email ? user.email : user.mobile;
 
     next();
   } catch (error) {
@@ -40,20 +38,16 @@ const isLogedIn = async (req, res, next) => {
   }
 };
 
-const backendUser = async (req, res, next) => {
-  if (req.user && req.user.isBackend) {
-    next();
-  } else {
-    res.status(403).json({ message: "Not authorized as a backend user" });
-  }
-};
-
-const hasRole = (role) => {
+const hasRoles = (roles = []) => {
   return (req, res, next) => {
-    if (req.user && (req.user.roles.includes(role) || req.user.roles.includes("admin"))) {
+    if (!Array.isArray(roles)) {
+      roles = [roles]; // Ensure roles is always an array
+    }
+
+    if (req.user && (roles.some((role) => req.user.roles.includes(role)) || req.user.roles.includes("admin"))) {
       next();
     } else {
-      res.status(403).json({ message: `Not authorized, requires role: ${role}` });
+      next(createHttpError(403, `Not authorized, requires role: ${roles.join(", ")}`));
     }
   };
 };
@@ -68,4 +62,12 @@ const hasPermission = (permission) => {
   };
 };
 
-module.exports = { authCheck, isLogedIn, backendUser, hasRole, hasPermission };
+const backendUser = async (req, res, next) => {
+  if (req.user && req.user.isBackend) {
+    next();
+  } else {
+    res.status(403).json({ message: "Not authorized as a backend user" });
+  }
+};
+
+module.exports = { authCheck, isLogedIn, backendUser, hasRoles, hasPermission };

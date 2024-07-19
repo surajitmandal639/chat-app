@@ -1,12 +1,9 @@
-/**
- *
- */
-
 const { configDotenv } = require("dotenv");
 const express = require("express");
 const { default: mongoose } = require("mongoose");
+const http = require("http"); // Add this line
 const app = express();
-const nunjucks = require("./node_modules/nunjucks/index.js");
+const nunjucks = require("nunjucks");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 
@@ -15,11 +12,29 @@ const { notFound, errorHandler } = require("./middleware/common/error.js");
 const userRoutes = require("./routes/userRoutes.js");
 const loginRoutes = require("./routes/loginRoutes.js");
 const inboxRoutes = require("./routes/inboxRoutes.js");
+const moment = require("moment");
 
 // connect with .env file
 configDotenv();
 
 app.use(cookieParser());
+
+// Create an HTTP server and pass the express app to it
+const server = http.createServer(app);
+
+// socket creation
+const io = require("socket.io")(server);
+global.io = io;
+
+io.on("connection", (socket) => {
+  console.log("a user connected");
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+  });
+});
+
+// set comment as app locals
+app.locals.moment = moment;
 
 // connect with mongodb
 try {
@@ -31,11 +46,10 @@ try {
 
 app.use(express.json());
 
-// middlewire
+// middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "njk");
-
 
 // Configure Nunjucks
 nunjucks.configure("views", {
@@ -57,4 +71,4 @@ app.use("/inbox", inboxRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(config.environment.httpPort, () => console.log(`${process.env.APP_NAME} listening on port ${config.environment.httpPort}!`));
+server.listen(config.environment.httpPort, () => console.log(`${process.env.APP_NAME} listening on port ${config.environment.httpPort}!`));

@@ -8,10 +8,16 @@
     <meta name="owner" content="learnwithsumit.com" />
     <title>{{ title }}</title>
     <link rel="shortcut icon" href="./images/favicon.png" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.4/jquery-confirm.min.css" />
     <link rel="stylesheet" href="./stylesheets/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.4/jquery-confirm.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.6.1/toastify.min.css" />
+
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.4/jquery-confirm.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.6.1/toastify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
+
     <style>
       .error-message {
         display: block;
@@ -20,18 +26,35 @@
     </style>
   </head>
   <body>
-    {% include "./partials/header.njk" %} 
-
-    {% block content %} 
-    
-    {% endblock %}
+    {% include "./partials/header.njk" %} {% block content %} {% endblock %}
 
     <script>
       $(document).ready(function () {
         $("input, select").on("input", function () {
           clearErrors($(this));
         });
+
+        let message = '';
+        if (message) {
+          showToast(message);
+        }
       });
+
+      function showToast(message) {
+        Toastify({
+          text: message,
+          duration: 3000,
+          newWindow: true,
+          close: true,
+          gravity: "top", // `top` or `bottom`
+          position: "left", // `left`, `center` or `right`
+          stopOnFocus: true, // Prevents dismissing of toast on hover
+          style: {
+            background: "linear-gradient(to right, #00b09b, #96c93d)",
+          },
+          onClick: function () {}, // Callback after click
+        }).showToast();
+      }
 
       function clearError(input) {
         input.removeClass("error");

@@ -12,13 +12,13 @@ exports.index = async (req, res, next) => {
 
     if (isAPIRequest) {
       res.json({
-        authUser: req.authUser || null,
+        user: req.user || null,
         users: users, // Return JSON if URL contains '/api'
       });
     } else {
       res.render("users", {
         title: "Manage Users",
-        authUser: req.authUser || null,
+        user: req.user || null,
         users: users, // Pass users array to the template
         errors: [],
         formData: {}, // Initialize formData object as empty
