@@ -6,12 +6,10 @@ const Message = require("../models/Message");
 
 // render inbox page
 const index = async (req, res, next) => {
-  console.log(req.user, 107);
   try {
     const conversations = await Conversation.find({
       $or: [{ "creator._id": req.user._id }, { "participant._id": req.user._id }],
     });
-    console.log(conversations, 106);
     const isAPIRequest = req.originalUrl.includes("/api");
     if (isAPIRequest) {
       res.json(conversations); // Return JSON if URL contains '/api'
@@ -30,7 +28,6 @@ const index = async (req, res, next) => {
 
 // search user
 const searchUser = async (req, res, next) => {
-  console.log(req.body.user, 101);
   const user = req.body.user;
   const searchQuery = user.replace(/^\+88|^\+91|^0/, "");
 
@@ -57,7 +54,6 @@ const searchUser = async (req, res, next) => {
         "name avatar"
       );
 
-      console.log(users, 102);
       res.json(users);
     } else {
       throw createError("You must provide some text to search!");
@@ -75,7 +71,6 @@ const searchUser = async (req, res, next) => {
 
 // add conversation
 const addConversation = async (req, res, next) => {
-  console.log(req.user,  req.body.id, req.body._id, 103);
   try {
     const newConversation = new Conversation({      
       creator: {
@@ -91,12 +86,10 @@ const addConversation = async (req, res, next) => {
     });
 
     const result = await newConversation.save();
-    console.log(result, 104);
     res.status(200).json({
       message: "Conversation was added successfully!",
     });
   } catch (err) {
-    console.log(err, 105);
     res.status(500).json({
       errors: {
         common: {
@@ -115,7 +108,6 @@ const getMessages = async (req, res, next) => {
     }).sort("-createdAt");
 
     const { participant } = await Conversation.findById(req.params.conversation_id);
-    console.log(messages, "message now");
     res.status(200).json({
       data: {
         messages: messages,
@@ -125,7 +117,6 @@ const getMessages = async (req, res, next) => {
       conversation_id: req.params.conversation_id,
     });
   } catch (err) {
-    console.log(err);
     res.status(500).json({
       errors: {
         common: {
@@ -168,7 +159,6 @@ const sendMessage = async (req, res, next) => {
       });
 
       const result = await newMessage.save();
-      console.log(result, "new message");
       // emit socket event
       global.io.emit("new_message", {
         message: {
